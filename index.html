@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>Marker Clustering</title>
+    <style>
+        /* Always set the map height explicitly to define the size of the div
+         * element that contains the map. */
+        #map {
+            height: 100%;
+        }
+        /* Optional: Makes the sample page fill the window. */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+<div id="map"></div>
+<script>
+
+    function initMap() {
+
+        const map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 7.8,
+            center: {lat: 49.8393005, lng: 15.4828753}
+        });
+
+        // Create an array of alphabetical characters used to label the markers.
+        const labels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+        const markers = locations.map(function(location, i) {
+            const marker =  new google.maps.Marker({
+                position: location,
+                label: labels[i % labels.length],
+                title: location.title,
+                id: location.id,
+            });
+
+
+
+
+            marker.addListener('click', function() {
+                createModalWindow(location.description, marker);
+            });
+            return marker;
+
+        });
+
+        // Add a marker clusterer to manage the markers.
+        const markerCluster = new MarkerClusterer(map, markers,
+            {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
+
+
+        function createModalWindow(description, marker) {
+            console.log(marker.get('id'))
+            new google.maps.InfoWindow({
+                content: description
+            }).open(map, marker);
+        }
+    }
+
+    let locations = [
+        {
+            id: 1,
+            lat: 50.0187671,
+            lng: 14.3482315,
+            title: '1',
+            description: 'PRDEL1',
+        },
+        {
+            id: 2,
+            lat: 50.3168027,
+            lng: 15.6774005,
+            title: '2',
+            description: 'PRDEL2',
+        },
+        {
+            id: 2,
+            lat: 49.5075511,
+            lng: 16.3482315,
+            title: '3',
+            description: 'PRDEL3',
+        },
+        {
+            id: 3,
+            lat: 49.0187671,
+            lng: 17.3482315,
+            title: '4',
+            description: 'PRDEL4',
+        },
+        {
+            id: 4,
+            lat: 49.0187671,
+            lng: 14.3482315,
+            title: '5',
+            description: 'PRDEL5',
+        },
+        {
+            id: 5,
+            lat: 49.0187671,
+            lng: 14.5482315,
+            title: '6',
+            description: 'PRDEL6',
+        },
+        {
+            id: 6,
+            lat: 49.1187671,
+            lng: 14.6482315,
+            title: '7',
+            description: 'PRDEL7',
+        },
+        {
+            id: 7,
+            lat: 49.2187671,
+            lng: 14.7482315,
+            title: '8',
+            description: 'PRDEL8',
+        },
+        {
+            id: 8,
+            lat: 49.3187671,
+            lng: 14.8482315,
+            title: '9',
+            description: 'PRDEL9',
+        },
+
+    ]
+</script>
+<script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js">
+</script>
+<script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAlhrNNRpOiAYKdZ9xjsrSKdcqewOS8Rws&callback=initMap">
+</script>
+</body>
+</html>
