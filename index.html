@@ -3,31 +3,39 @@
 <head>
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
     <meta charset="utf-8">
+    <link rel="stylesheet" href="./css/bootstrap.min.css" >
+    <link rel="stylesheet" href="./css/style.css" >
     <title>Marker Clustering</title>
-    <style>
-        /* Always set the map height explicitly to define the size of the div
-         * element that contains the map. */
-        #map {
-            height: 100%;
-        }
-        /* Optional: Makes the sample page fill the window. */
-        html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-        }
-    </style>
 </head>
 <body>
-<div id="map"></div>
+<div class="container-fluid padding-top">
+
+    <div class="row">
+        <div class="col-lg-10">
+            <div id="map"></div>
+        </div>
+        <div class="col-lg-2">
+            <div id="directions-panel"></div>
+        </div>
+    </div>
+
+
+</div>
+
 <script>
 
     function initMap() {
-
+        let waypoints = [];
+        const directionsService = new google.maps.DirectionsService;
+        const directionsDisplay = new google.maps.DirectionsRenderer(
+            {
+                suppressMarkers: true
+            });
         const map = new google.maps.Map(document.getElementById('map'), {
             zoom: 7.8,
             center: {lat: 49.8393005, lng: 15.4828753}
         });
+
 
         // Create an array of alphabetical characters used to label the markers.
         const labels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -40,15 +48,68 @@
                 id: location.id,
             });
 
-
-
-
             marker.addListener('click', function() {
                 createModalWindow(location.description, marker);
+                addWaypoint(location);
+                createRoutes();
+
             });
             return marker;
 
         });
+
+        function createRoutes()
+        {
+            directionsDisplay.setMap(map);
+            let rebuildWaypoints = [];
+            for (let way of waypoints)
+            {
+                rebuildWaypoints.push({
+                    location: {
+                        lat: way.location.lat, lng: way.location.lng
+                    },
+                    stopover: true
+                });
+            }
+            directionsService.route({
+                origin: {lat: 50.0187671, lng: 14.3482315},
+                destination:  {lat: 50.0187671, lng: 14.3482315},
+                waypoints: rebuildWaypoints,
+                // optimizeWaypoints: true,
+                travelMode: 'DRIVING'
+            }, function(response, status) {
+                if (status === 'OK') {
+
+                    // console.log(response)
+                    directionsDisplay.setDirections(response);
+
+                    const route = response.routes[0];
+                    const summaryPanel = document.getElementById('directions-panel');
+                    summaryPanel.innerHTML = '';
+                    // For each route, display summary information.
+                    for (let i = 0; i < route.legs.length; i++) {
+
+                        // console.log( route.legs[i])
+                        let routeSegment = i + 1;
+                        summaryPanel.innerHTML += '<b>Route Segment: ' + routeSegment +
+                            '</b><br>';
+                        summaryPanel.innerHTML += route.legs[i].start_address + ' to ';
+                        summaryPanel.innerHTML += route.legs[i].end_address + '<br>';
+                        summaryPanel.innerHTML += route.legs[i].distance.text + '<br><br>';
+
+                    }
+                    summaryPanel.innerHTML += '<button id="myBtn">Odebrat poslední</button>';
+
+                    document.getElementById("myBtn").addEventListener("click", function(){
+                        removeLastWaypoint();
+                    });
+
+                } else {
+                    window.alert('Directions request failed due to ' + status);
+                }
+            });
+
+        }
 
         // Add a marker clusterer to manage the markers.
         const markerCluster = new MarkerClusterer(map, markers,
@@ -56,12 +117,57 @@
 
 
         function createModalWindow(description, marker) {
-            console.log(marker.get('id'))
+            // console.log(marker.get('id'));
             new google.maps.InfoWindow({
                 content: description
             }).open(map, marker);
         }
+
+        function addWaypoint(location) {
+            if (waypoints.length === 0)
+            {
+                waypoints.push({
+                    id: location.id,
+                    location: {
+                        lat: location.lat, lng: location.lng
+                    }
+                });
+                return;
+            }
+            let exist = false;
+            for (let way of waypoints) {
+                if (way.id === location.id)
+                {
+                    exist = true;
+                }
+
+            }
+            if (!exist)
+            {
+                waypoints.push({
+                    id: location.id,
+                    location: {
+                        lat: location.lat, lng: location.lng
+                    }
+                });
+            }
+        }
+
+        function removeLastWaypoint() {
+            waypoints.splice(-1,1);
+            if (waypoints.length < 1){
+                directionsDisplay.setMap(null);
+
+                const element = document.getElementById("directions-panel");
+                element.outerHTML = "";
+                return;
+            }
+
+            createRoutes();
+        }
     }
+
+
 
     let locations = [
         {
@@ -79,49 +185,49 @@
             description: 'PRDEL2',
         },
         {
-            id: 2,
+            id: 3,
             lat: 49.5075511,
             lng: 16.3482315,
             title: '3',
             description: 'PRDEL3',
         },
         {
-            id: 3,
+            id: 4,
             lat: 49.0187671,
             lng: 17.3482315,
             title: '4',
             description: 'PRDEL4',
         },
         {
-            id: 4,
+            id: 5,
             lat: 49.0187671,
             lng: 14.3482315,
             title: '5',
             description: 'PRDEL5',
         },
         {
-            id: 5,
+            id: 6,
             lat: 49.0187671,
             lng: 14.5482315,
             title: '6',
             description: 'PRDEL6',
         },
         {
-            id: 6,
+            id: 7,
             lat: 49.1187671,
             lng: 14.6482315,
             title: '7',
             description: 'PRDEL7',
         },
         {
-            id: 7,
+            id: 8,
             lat: 49.2187671,
             lng: 14.7482315,
             title: '8',
             description: 'PRDEL8',
         },
         {
-            id: 8,
+            id: 9,
             lat: 49.3187671,
             lng: 14.8482315,
             title: '9',
