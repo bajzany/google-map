@@ -8,14 +8,29 @@
     <title>Marker Clustering</title>
 </head>
 <body>
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
 <div class="container-fluid padding-top">
 
     <div class="row">
-        <div class="col-lg-10">
+        <div class="col-lg-12">
             <div id="map"></div>
         </div>
-        <div class="col-lg-2">
-            <div id="directions-panel"></div>
+        <div class="col-lg-12">
+            <div class="col-lg-12 ">
+                <form class="form-inline formLocation" onsubmit="handleSubmit(this)">
+                    <label class="sr-only" for="startLocation">Started Location</label>
+                    <input type="text" class="form-control mb-2 mr-sm-2" id="startLocation" placeholder="Started Location">
+
+                    <label class="sr-only" for="endLocation">Ended Location</label>
+                    <input type="text" class="form-control mb-2 mr-sm-2" id="endLocation" placeholder="Ended Location">
+
+                    <button type="submit" class="btn btn-primary mb-2">Uložit</button>
+                </form>
+            </div>
+            <div class="col-lg-12" id="directions-panel">
+            </div>
         </div>
     </div>
 
@@ -24,151 +39,8 @@
 
 <script>
 
-    function initMap() {
-        let waypoints = [];
-        const directionsService = new google.maps.DirectionsService;
-        const directionsDisplay = new google.maps.DirectionsRenderer(
-            {
-                suppressMarkers: true
-            });
-        const map = new google.maps.Map(document.getElementById('map'), {
-            zoom: 7.8,
-            center: {lat: 49.8393005, lng: 15.4828753}
-        });
-
-
-        // Create an array of alphabetical characters used to label the markers.
-        const labels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-
-        const markers = locations.map(function(location, i) {
-            const marker =  new google.maps.Marker({
-                position: location,
-                label: labels[i % labels.length],
-                title: location.title,
-                id: location.id,
-            });
-
-            marker.addListener('click', function() {
-                createModalWindow(location.description, marker);
-                addWaypoint(location);
-                createRoutes();
-
-            });
-            return marker;
-
-        });
-
-        function createRoutes()
-        {
-            directionsDisplay.setMap(map);
-            let rebuildWaypoints = [];
-            for (let way of waypoints)
-            {
-                rebuildWaypoints.push({
-                    location: {
-                        lat: way.location.lat, lng: way.location.lng
-                    },
-                    stopover: true
-                });
-            }
-            directionsService.route({
-                origin: {lat: 50.0187671, lng: 14.3482315},
-                destination:  {lat: 50.0187671, lng: 14.3482315},
-                waypoints: rebuildWaypoints,
-                // optimizeWaypoints: true,
-                travelMode: 'DRIVING'
-            }, function(response, status) {
-                if (status === 'OK') {
-
-                    // console.log(response)
-                    directionsDisplay.setDirections(response);
-
-                    const route = response.routes[0];
-                    const summaryPanel = document.getElementById('directions-panel');
-                    summaryPanel.innerHTML = '';
-                    // For each route, display summary information.
-                    for (let i = 0; i < route.legs.length; i++) {
-
-                        // console.log( route.legs[i])
-                        let routeSegment = i + 1;
-                        summaryPanel.innerHTML += '<b>Route Segment: ' + routeSegment +
-                            '</b><br>';
-                        summaryPanel.innerHTML += route.legs[i].start_address + ' to ';
-                        summaryPanel.innerHTML += route.legs[i].end_address + '<br>';
-                        summaryPanel.innerHTML += route.legs[i].distance.text + '<br><br>';
-
-                    }
-                    summaryPanel.innerHTML += '<button id="myBtn">Odebrat poslední</button>';
-
-                    document.getElementById("myBtn").addEventListener("click", function(){
-                        removeLastWaypoint();
-                    });
-
-                } else {
-                    window.alert('Directions request failed due to ' + status);
-                }
-            });
-
-        }
-
-        // Add a marker clusterer to manage the markers.
-        const markerCluster = new MarkerClusterer(map, markers,
-            {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
-
-
-        function createModalWindow(description, marker) {
-            // console.log(marker.get('id'));
-            new google.maps.InfoWindow({
-                content: description
-            }).open(map, marker);
-        }
-
-        function addWaypoint(location) {
-            if (waypoints.length === 0)
-            {
-                waypoints.push({
-                    id: location.id,
-                    location: {
-                        lat: location.lat, lng: location.lng
-                    }
-                });
-                return;
-            }
-            let exist = false;
-            for (let way of waypoints) {
-                if (way.id === location.id)
-                {
-                    exist = true;
-                }
-
-            }
-            if (!exist)
-            {
-                waypoints.push({
-                    id: location.id,
-                    location: {
-                        lat: location.lat, lng: location.lng
-                    }
-                });
-            }
-        }
-
-        function removeLastWaypoint() {
-            waypoints.splice(-1,1);
-            if (waypoints.length < 1){
-                directionsDisplay.setMap(null);
-
-                const element = document.getElementById("directions-panel");
-                element.outerHTML = "";
-                return;
-            }
-
-            createRoutes();
-        }
-    }
-
-
-
+    let startedLocation = undefined;
+    let endLocation = undefined;
     let locations = [
         {
             id: 1,
@@ -234,7 +106,242 @@
             description: 'PRDEL9',
         },
 
-    ]
+    ];
+
+    function handleSubmit() {
+        event.preventDefault();
+        startedLocation = document.getElementById('startLocation').value;
+        endLocation = document.getElementById('endLocation').value;
+
+        var geocoder =  new google.maps.Geocoder();
+
+        geocoder.geocode( {'address' : endLocation}, function(results, status) {
+            if (status == google.maps.GeocoderStatus.OK) {
+
+                locations.unshift({
+                    id: 'endLocation',
+                    lat: results[0].geometry.location.lat(),
+                    lng: results[0].geometry.location.lng(),
+                    title: 'endLocation',
+                    description: 'endLocation',
+                });
+
+            } else {
+                alert("Something got wrong " + status);
+            }
+        });
+
+        geocoder.geocode( {'address' : startedLocation}, function(results, status) {
+            if (status == google.maps.GeocoderStatus.OK) {
+                locations.unshift({
+                    id: 'startedLocation',
+                    lat: results[0].geometry.location.lat(),
+                    lng: results[0].geometry.location.lng(),
+                    title: 'startedLocation',
+                    description: 'startedLocation',
+                });
+            } else {
+                alert("Something got wrong " + status);
+            }
+        });
+
+        setTimeout(initMap, 500);
+    }
+
+    function initMap() {
+        let waypoints = [];
+        const directionsService = new google.maps.DirectionsService;
+        const directionsDisplay = new google.maps.DirectionsRenderer(
+            {
+                suppressMarkers: true
+            });
+        const map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 7.8,
+            center: {lat: 49.8393005, lng: 15.4828753}
+        });
+
+
+        // Create an array of alphabetical characters used to label the markers.
+        const labels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+        const markers = locations.map(function(location, i) {
+            const marker =  new google.maps.Marker({
+                position: location,
+                label: labels[i % labels.length],
+                title: location.title,
+                id: location.id,
+            });
+
+            marker.addListener('click', function() {
+                createModalWindow(location.description, marker);
+                addWaypoint(location);
+                createRoutes();
+            });
+            return marker;
+
+        });
+
+        function createRoutes()
+        {
+            if (typeof startedLocation === 'undefined' || typeof endLocation === 'undefined') {
+                alert("Musíš nejprve zadat startovací a konečnou lokaci!!");
+                return;
+            }
+
+            directionsDisplay.setMap(map);
+            let rebuildWaypoints = [];
+            for (let way of waypoints)
+            {
+                rebuildWaypoints.push({
+                    location: {
+                        lat: way.location.lat, lng: way.location.lng
+                    },
+                    stopover: true
+                });
+            }
+            directionsService.route({
+                origin: startedLocation,
+                destination:  endLocation,
+                waypoints: rebuildWaypoints,
+                // optimizeWaypoints: true,
+                travelMode: 'DRIVING'
+            }, function(response, status) {
+                if (status === 'OK') {
+
+                    // console.log(response)
+                    directionsDisplay.setDirections(response);
+
+                    const route = response.routes[0];
+                    const summaryPanel = document.getElementById('directions-panel');
+                    summaryPanel.innerHTML = '';
+                    // For each route, display summary information.
+                    summaryPanel.innerHTML += '' +
+                        '<div class="accordion" id="accordion">' +
+                        '<div class="card">';
+                    for (let i = 0; i < route.legs.length; i++) {
+
+                        // console.log( route.legs[i])
+                        let routeSegment = i + 1;
+                        let collapseId = 'collapse-'+routeSegment;
+
+                        let steps = '<ul class="list-group">';
+                        for (let step of route.legs[i].steps) {
+                            steps += '' +
+                                '<li class="list-group-item clearfix">' +
+                                    '<div class="route-step-instruction">' +
+                                        step.instructions +
+                                    '</div>' +
+                                    '<div class="route-step-distance">'
+                                        +step.distance.text+'<br/>'
+                                        +step.duration.text+
+                                    '</div>'+
+                                '</li>';
+                        }
+
+                        steps += '</ul>';
+
+                        summaryPanel.innerHTML += '' +
+                            '<div class="card-header" id="headingOne">' +
+                                '<h5 class="mb-0">' +
+                                    '<button class="btn btn-default btn-block" type="button" data-toggle="collapse" data-target="#'+ collapseId +'" aria-expanded="true" aria-controls="'+ collapseId +'">'+
+                                        'Trasa: '+ routeSegment +
+                                        '</b><br/>' +
+                                        '<strong>'+route.legs[i].start_address + '</strong> do <br>'+
+                                        '<strong>'+route.legs[i].end_address + '</strong><br>'+
+                                        '<strong>'+route.legs[i].distance.text + '</strong>'+
+                                    '</button>'+
+                                '</h5>'+
+                            '</div>'+
+                            '<div id="'+ collapseId +'" class="collapse" aria-labelledby="headingOne" data-parent="#accordion">' +
+                            '      <div class="card-body">' +
+                                        steps +
+                            '      </div>' +
+                            '    </div>';
+
+                    }
+                    summaryPanel.innerHTML += '' +
+                        '</div>'+
+                        '</div>';
+                    summaryPanel.innerHTML += '<button class="btn btn-danger btn-block" id="deleteLastRoute">Odebrat poslední</button>';
+
+                    document.getElementById("deleteLastRoute").addEventListener("click", function(){
+                        removeLastWaypoint();
+                    });
+
+                } else {
+                    window.alert('Directions request failed due to ' + status);
+                }
+            });
+
+        }
+
+        // Add a marker clusterer to manage the markers.
+        const markerCluster = new MarkerClusterer(map, markers,
+            {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
+
+        function createModalWindow(description, marker) {
+            // console.log(marker.get('id'));
+            new google.maps.InfoWindow({
+                content: description
+            }).open(map, marker);
+        }
+
+        function addWaypoint(location) {
+            if (waypoints.length === 0)
+            {
+                waypoints.push({
+                    id: location.id,
+                    location: {
+                        lat: location.lat, lng: location.lng
+                    }
+                });
+                return;
+            }
+            let exist = false;
+            for (let way of waypoints) {
+                if (way.id === location.id)
+                {
+                    exist = true;
+                }
+
+            }
+            if (!exist)
+            {
+                waypoints.push({
+                    id: location.id,
+                    location: {
+                        lat: location.lat, lng: location.lng
+                    }
+                });
+            }
+        }
+
+        function removeLastWaypoint() {
+            waypoints.splice(-1,1);
+            if (waypoints.length < 1){
+                directionsDisplay.setMap(null);
+
+                const element = document.getElementById("directions-panel");
+                element.innerHTML = "";
+                return;
+            }
+
+            createRoutes();
+        }
+    }
+
+
+
+//    let startedLocation = {
+//        lat: 50.0187671,
+//        lng: 14.3482315,
+//    };
+//    let endLocation = {
+//        lat: 50.0187671,
+//        lng: 14.3482315,
+//    };
+
+
 </script>
 <script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js">
 </script>
