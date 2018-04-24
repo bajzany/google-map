@@ -41,6 +41,7 @@
 
     let startedLocation = undefined;
     let endLocation = undefined;
+    let waypoints = [];
     let locations = [
         {
             id: 1,
@@ -149,7 +150,7 @@
     }
 
     function initMap() {
-        let waypoints = [];
+
         const directionsService = new google.maps.DirectionsService;
         const directionsDisplay = new google.maps.DirectionsRenderer(
             {
@@ -159,7 +160,6 @@
             zoom: 7.8,
             center: {lat: 49.8393005, lng: 15.4828753}
         });
-
 
         // Create an array of alphabetical characters used to label the markers.
         const labels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -217,7 +217,7 @@
                     // For each route, display summary information.
                     summaryPanel.innerHTML += '' +
                         '<div class="accordion" id="accordion">' +
-                        '<div class="card">';
+                            '<div class="card">';
                     for (let i = 0; i < route.legs.length; i++) {
 
                         // console.log( route.legs[i])
@@ -241,26 +241,25 @@
                         steps += '</ul>';
 
                         summaryPanel.innerHTML += '' +
-                            '<div class="card-header" id="headingOne">' +
-                                '<h5 class="mb-0">' +
-                                    '<button class="btn btn-default btn-block" type="button" data-toggle="collapse" data-target="#'+ collapseId +'" aria-expanded="true" aria-controls="'+ collapseId +'">'+
-                                        'Trasa: '+ routeSegment +
-                                        '</b><br/>' +
-                                        '<strong>'+route.legs[i].start_address + '</strong> do <br>'+
-                                        '<strong>'+route.legs[i].end_address + '</strong><br>'+
-                                        '<strong>'+route.legs[i].distance.text + '</strong>'+
-                                    '</button>'+
-                                '</h5>'+
-                            '</div>'+
-                            '<div id="'+ collapseId +'" class="collapse" aria-labelledby="headingOne" data-parent="#accordion">' +
-                            '      <div class="card-body">' +
+                                '<div class="card-header" id="headingOne">' +
+                                    '<h5 class="mb-0">' +
+                                        '<button class="btn btn-default btn-block" type="button" data-toggle="collapse" data-target="#'+ collapseId +'" aria-expanded="true" aria-controls="'+ collapseId +'">'+
+                                            'Trasa: '+ routeSegment +
+                                            '</b><br/>' +
+                                            '<strong>'+route.legs[i].start_address + '</strong> do <br>'+
+                                            '<strong>'+route.legs[i].end_address + '</strong><br>'+
+                                            '<strong>'+route.legs[i].distance.text + '</strong>'+
+                                        '</button>'+
+                                    '</h5>'+
+                                '</div>'+
+                                '<div id="'+ collapseId +'" class="collapse" aria-labelledby="headingOne" data-parent="#accordion">' +
+                                    '<div class="card-body">' +
                                         steps +
-                            '      </div>' +
-                            '    </div>';
-
+                                    '</div>' +
+                                '</div>';
                     }
                     summaryPanel.innerHTML += '' +
-                        '</div>'+
+                            '</div>'+
                         '</div>';
                     summaryPanel.innerHTML += '<button class="btn btn-danger btn-block" id="deleteLastRoute">Odebrat poslední</button>';
 
@@ -303,7 +302,6 @@
                 {
                     exist = true;
                 }
-
             }
             if (!exist)
             {
@@ -329,19 +327,6 @@
             createRoutes();
         }
     }
-
-
-
-//    let startedLocation = {
-//        lat: 50.0187671,
-//        lng: 14.3482315,
-//    };
-//    let endLocation = {
-//        lat: 50.0187671,
-//        lng: 14.3482315,
-//    };
-
-
 </script>
 <script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js">
 </script>
