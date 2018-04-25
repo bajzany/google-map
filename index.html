@@ -38,7 +38,7 @@
 </div>
 
 <script>
-
+    const maxGoogleWaypoints = 21;
     let startedLocation = undefined;
     let endLocation = undefined;
     let waypoints = [];
@@ -188,9 +188,28 @@
                 return;
             }
 
+            let numberOfMap = 1;
+
+            if (waypoints.length % maxGoogleWaypoints === 0)
+            {
+                numberOfMap++;
+            }
+
+            let waypointSteps = [];
+
+            for (let i = 0; i <= numberOfMap; i++) {
+
+                let step = waypoints.slice(maxGoogleWaypoints * i, maxGoogleWaypoints *i + maxGoogleWaypoints);
+
+                if (step.length > 0)
+                {
+                    waypointSteps.push(step);
+                }
+            }
+
             directionsDisplay.setMap(map);
             let rebuildWaypoints = [];
-            for (let way of waypoints)
+            for (let way of waypointSteps[waypointSteps.length-1])
             {
                 rebuildWaypoints.push({
                     location: {
@@ -199,16 +218,27 @@
                     stopover: true
                 });
             }
+            let start = undefined;
+            let end = undefined;
+            if (waypointSteps.length > 1)
+            {
+                console.log(waypointSteps[waypointSteps.length-2][maxGoogleWaypoints-1].location);
+                start = waypointSteps[waypointSteps.length-2][maxGoogleWaypoints-1].location;
+                end = waypointSteps[waypointSteps.length-2][maxGoogleWaypoints-1].location;
+            } else
+            {
+                start = startedLocation;
+                end = endLocation;
+            }
+
             directionsService.route({
-                origin: startedLocation,
-                destination:  endLocation,
+                origin: start,
+                destination:  end,
                 waypoints: rebuildWaypoints,
                 // optimizeWaypoints: true,
                 travelMode: 'DRIVING'
             }, function(response, status) {
                 if (status === 'OK') {
-
-                    // console.log(response)
                     directionsDisplay.setDirections(response);
 
                     const route = response.routes[0];
@@ -220,7 +250,6 @@
                             '<div class="card">';
                     for (let i = 0; i < route.legs.length; i++) {
 
-                        // console.log( route.legs[i])
                         let routeSegment = i + 1;
                         let collapseId = 'collapse-'+routeSegment;
 
